@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "live_mmr_watcher", "live_mmr_watcher.csproj", "{01335A10-5407-ADBF-AFB8-AC6086BE6D66}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{01335A10-5407-ADBF-AFB8-AC6086BE6D66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01335A10-5407-ADBF-AFB8-AC6086BE6D66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01335A10-5407-ADBF-AFB8-AC6086BE6D66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01335A10-5407-ADBF-AFB8-AC6086BE6D66}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {73BE02F9-1393-4F69-9B52-A3A04D681830}
+	EndGlobalSection
+EndGlobal
