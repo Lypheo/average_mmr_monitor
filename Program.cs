@@ -19,7 +19,7 @@ public class TestGC
     static SteamGameCoordinator coordinator;
     static bool isRunning;
     static bool isGCReady = false;
-    static string logFilePath = @"E:\Programs\Games\Steam\steamapps\common\dota 2 beta\game\dota\console.log"; // Make sure this path is correct
+    static string logFilePath; // Remove hardcoded path
     static FileSystemWatcher logWatcher;
     static long lastLogSize = 0;
     static ulong currentLobbyId = 0;
@@ -34,8 +34,30 @@ public class TestGC
     static int maxRetries = 2; // Allow 1 retry before restarting
     static Dictionary<ulong, int> lobbyRetryCount = new Dictionary<ulong, int>();
 
+    static string steamUsername;
+    static string steamPassword;
+
     static void Main(string[] args)
     {
+        // Parse command line arguments
+        if (args.Length < 3)
+        {
+            Console.WriteLine("Usage: Program.exe <username> <password> <log_file_path>");
+            Console.WriteLine("Example: Program.exe myusername mypassword \"C:\\Steam\\steamapps\\common\\dota 2 beta\\game\\dota\\console.log\"");
+            return;
+        }
+
+        steamUsername = args[0];
+        steamPassword = args[1];
+        logFilePath = args[2];
+
+        // Validate log file path
+        if (!File.Exists(logFilePath))
+        {
+            Console.WriteLine($"Error: Log file not found at {logFilePath}.");
+            return;
+        }
+
         // Initialize SteamKit
         steamClient = new SteamClient();
         manager = new CallbackManager(steamClient);
@@ -100,20 +122,19 @@ public class TestGC
         Console.WriteLine("Connected to Steam! Logging in ...");
         try
         {
-            var username = Environment.GetEnvironmentVariable("STEAM_USERNAME");
-            var password = Environment.GetEnvironmentVariable("STEAM_PASSWORD");
-
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(steamUsername) || string.IsNullOrEmpty(steamPassword))
             {
-                Console.WriteLine("Error: STEAM_USERNAME or STEAM_PASSWORD environment variables are not set.");
+                Console.WriteLine("Error: Username or password is empty.");
                 isRunning = false;
                 return;
             }
+            Console.WriteLine($"Logging in as {steamUsername}...");
+            // Log in using the provided credentials
 
             steamUser.LogOn(new SteamUser.LogOnDetails
             {
-                Username = username,
-                Password = password
+                Username = steamUsername,
+                Password = steamPassword
             });
         }
         catch
@@ -223,19 +244,18 @@ public class TestGC
                         friendFound = true;
                     }
                 }
-                if (!friendFound) {
-                     Console.WriteLine("No known friends found in this lobby.");
+                if (!friendFound)
+                {
+                    Console.WriteLine("No known friends found in this lobby.");
                 }
-                 Console.WriteLine($"-------------------");
+                Console.WriteLine($"-------------------");
 
                 processedLobbyIds.Add(game.lobby_id); // Mark as processed
-                
+
                 // Clean up tracking for this lobby
                 pendingLobbyRequests.Remove(game.lobby_id);
                 lobbyRetryCount.Remove(game.lobby_id);
             }
-        } else {
-            Console.WriteLine($"Received non-specific or empty game list response for lobby request.");
         }
     }
 
@@ -386,7 +406,7 @@ public class TestGC
         }
     }
 
-    static readonly Regex lobbyRegex = new Regex(@"LOBBY STATE RUN: lobby (\d+)", RegexOptions.Compiled);
+    static readonly Regex lobbyRegex = new Regex(@"(\d{2}/\d{2} \d{2}:\d{2}:\d{2}) LOBBY STATE RUN: lobby (\d+)", RegexOptions.Compiled);
     static void CheckConsoleLog(bool forceRead = false)
     {
         try
@@ -413,15 +433,39 @@ public class TestGC
                     if (matches.Count > 0)
                     {
                         // Get the last lobby ID mentioned in the new content
-                        string lobbyIdStr = matches[matches.Count - 1].Groups[1].Value;
-                        if (ulong.TryParse(lobbyIdStr, out ulong newLobbyId))
+                        var lastMatch = matches[matches.Count - 1];
+                        string timestampStr = lastMatch.Groups[1].Value;
+                        string lobbyIdStr = lastMatch.Groups[2].Value;
+
+                        // Parse the timestamp (format: MM/dd HH:mm:ss)
+                        if (DateTime.TryParseExact(timestampStr, "MM/dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out DateTime logTime))
                         {
-                            if (newLobbyId != currentLobbyId)
+                            // Assume the log time is from the current year
+                            var currentYear = DateTime.Now.Year;
+                            logTime = new DateTime(currentYear, logTime.Month, logTime.Day, logTime.Hour, logTime.Minute, logTime.Second);
+                            
+                            // Check if the timestamp is within the last 3 hours
+                            var timeDifference = DateTime.Now - logTime;
+                            if (timeDifference.TotalHours <= 3 && timeDifference.TotalSeconds >= 0)
                             {
-                                Console.WriteLine($"Detected new lobby ID: {newLobbyId}");
-                                currentLobbyId = newLobbyId;
-                                // Request will be sent in the main loop
+                                if (ulong.TryParse(lobbyIdStr, out ulong newLobbyId))
+                                {
+                                    if (newLobbyId != currentLobbyId)
+                                    {
+                                        Console.WriteLine($"Detected new lobby ID: {newLobbyId} (timestamp: {logTime})");
+                                        currentLobbyId = newLobbyId;
+                                        // Request will be sent in the main loop
+                                    }
+                                }
                             }
+                            else
+                            {
+                                Console.WriteLine($"Skipping old lobby entry from {logTime} (more than 3 hours ago)");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Failed to parse timestamp: {timestampStr}");
                         }
                     }
                 }
