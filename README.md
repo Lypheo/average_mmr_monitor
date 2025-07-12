@@ -4,21 +4,21 @@ A Dota 2 tool that retrieves the lobby average MMR of matches you play or live-s
 
 ## Prerequisites
 
-- .NET 8.0 or later
-- Secondary Steam account with Steam Guard disabled. Needed because the tool requires a Game Coordinator connection, and Valve only allows one connection per account, so you can't use your main acc at the same time. (Steam Guards needs to be disabled because I'm too lazy to implement Steam Guard authentification, #patches_welcome.)
+- Secondary Steam account with Steam Guard disabled. Needed because the tool requires a Game Coordinator connection, and Valve only allows one connection per account, so you can't use your main acc at the same time. (Steam Guards needs to be disabled because I'm too lazy to implement Steam Guard authentification, patches welcome.)
+- For compilation: .NET 8.0
 
 ## Setup
 
 ### 1. Enable Dota 2 Console Logging
 
-Add the following launch option to Dota 2 in Steam:
+Add the following launch options to Dota 2 in Steam:
 ```
 -console -consolelog -conclearlog
 ```
 
 This enables console logging to the `console.log` file.
 
-### 2. Optionally, configure friends list
+### 2. Optionally, configure friends list (requires recompilation)
 
 If you want the output to display which friends are in a given lobby (helpful when you're for looking some specific past game in the log)
 edit the `mainFriends` dictionary in `Program.cs` to add your friends' Steam account IDs:
@@ -38,7 +38,7 @@ The tool requires three command line arguments: username, password, and log file
 
 ```bash
 cd path/to/average_mmr_monitor
-dotnet run <username> <password> <log_file_path>
+dotnet run <username> <password> <log_file_path> # or: average_mmr_monitor.exe <username> <password> <log_file_path>
 ```
 The log file path will typically be something like ``C:\Steam\steamapps\common\dota 2 beta\game\dota\console.log``, depending on your installation location.
 
@@ -53,7 +53,7 @@ The log file path will typically be something like ``C:\Steam\steamapps\common\d
 The endpoint only works for currently live games, so you can't look up the average mmr of past games.
 
 Technically, you can use that endpoint to retrieve the average mmr of any ranked lobby if you have its lobby ID. However, I only know of two ways to find a match's lobby ID:
-1. Joining it (either by playing or by live-spectating with dota plus) logs the lobby ID to your console
+1. Joining it (either by playing or by live-spectating with dota plus) writes the lobby ID to your console
 2. You can monitor Steam's Rich Presence data to find the lobby IDs of matches your friends play (see for example https://github.com/daveknippers/AghanimsWager/blob/main/DotaBet_GC.py)
 (This means you could technically extend this tool to track all of your friends's games if they add your secondary acc)
 
