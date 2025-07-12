@@ -1,6 +1,6 @@
 # Live MMR Monitor
 
-A Dota 2 monitoring tool that tracks your matches (and matches you live-spectate) and retrieves the lobby average MMR using the Game Coordinator API.
+A Dota 2 tool that retrieves the lobby average MMR of matches you play or live-spectate, using the Game Coordinator API.
 
 ## Prerequisites
 
